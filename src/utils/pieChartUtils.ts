@@ -279,8 +279,8 @@ export function getSegmentIndex(
   const dy = y - centerY;
   const r = Math.sqrt(dx * dx + dy * dy);
   
-  // Проверяем, что точка находится в допустимом диапазоне радиусов
-  if (r < innerRadius - roundSize || r > outerRadius + roundSize) return -1;
+  // Проверяем, что точка находится в допустимом диапазоне радиусов (точно как видимая линия)
+  if (r < innerRadius || r > outerRadius) return -1;
   
   let angle = Math.atan2(dy, dx);
   // Нормализуем угол к диапазону [-π/2, 3π/2]

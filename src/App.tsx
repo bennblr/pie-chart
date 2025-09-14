@@ -114,7 +114,6 @@ const easingFunctions = {
 function App() {
   const [chartParams, setChartParams] = useState({
     size: 400,
-    strokeWidth: 24,
     ringWidth: 40,
     roundSize: 20,
     shadowBlur: 8,
@@ -179,17 +178,6 @@ function App() {
                     type="number"
                     value={chartParams.size}
                     onChange={(e) => handleInputChange('size', Number(e.target.value))}
-                    style={{ width: '100%', marginTop: '5px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                  />
-                </label>
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>
-                  Толщина линий:
-                  <input
-                    type="number"
-                    value={chartParams.strokeWidth}
-                    onChange={(e) => handleInputChange('strokeWidth', Number(e.target.value))}
                     style={{ width: '100%', marginTop: '5px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
                   />
                 </label>
@@ -599,80 +587,89 @@ function App() {
           alignItems: 'center', 
           justifyContent: 'center',
           padding: '20px',
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          position: 'relative'
         }}>
-          <h1 style={{ marginTop: 0, marginBottom: '20px', color: '#333' }}>Pie Chart Demo</h1>
+          {/* Диаграмма - фиксированная позиция */}
+          <div style={{ 
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1
+          }}>
+            <PieChart 
+              key={key} // Принудительная перерисовка при изменении
+              data={data} 
+              size={chartParams.size}
+              ringWidth={chartParams.ringWidth}
+              roundSize={chartParams.roundSize}
+              shadowBlur={chartParams.shadowBlur}
+              shadowOffset={chartParams.shadowOffset}
+              roundShadowBlur={chartParams.roundShadowBlur}
+              roundShadowColor={chartParams.roundShadowColor}
+              roundShadowOpacity={chartParams.roundShadowOpacity / 100}
+              roundShadowOffset={chartParams.roundShadowOffset}
+              roundShadowMode={chartParams.roundShadowMode as 'always' | 'after-animation' | 'disabled'}
+              roundShadowAnimationDuration={chartParams.roundShadowAnimationDuration}
+              animationDuration={chartParams.mainAnimationDuration}
+              animationEasing={easingFunctions[selectedEasing]}
+              shadowMode={shadowMode}
+              cursorMode={cursorMode}
+              iconAnimationDelay={chartParams.iconAnimationDelay}
+              iconAnimationDuration={chartParams.iconAnimationDuration}
+              iconAnimationType={chartParams.iconAnimationType}
+              shadowEasing={easingFunctions[chartParams.shadowEasing]}
+              showSegmentLabels={chartParams.showSegmentLabels}
+              segmentLabelType={chartParams.segmentLabelType}
+              segmentLabelDistance={chartParams.segmentLabelDistance}
+              segmentLabels={chartParams.segmentLabels}
+              onSegmentClick={(segment, index) => {
+                setSelectedSegment(segment);
+              }}
+            />
+          </div>
           
-          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '40px' }}>
-            <div>
-              <PieChart 
-                key={key} // Принудительная перерисовка при изменении
-                data={data} 
-                size={chartParams.size}
-                strokeWidth={chartParams.strokeWidth}
-                ringWidth={chartParams.ringWidth}
-                roundSize={chartParams.roundSize}
-                shadowBlur={chartParams.shadowBlur}
-                shadowOffset={chartParams.shadowOffset}
-                roundShadowBlur={chartParams.roundShadowBlur}
-                roundShadowColor={chartParams.roundShadowColor}
-                roundShadowOpacity={chartParams.roundShadowOpacity / 100}
-                roundShadowOffset={chartParams.roundShadowOffset}
-                roundShadowMode={chartParams.roundShadowMode as 'always' | 'after-animation' | 'disabled'}
-                roundShadowAnimationDuration={chartParams.roundShadowAnimationDuration}
-                animationDuration={chartParams.mainAnimationDuration}
-                animationEasing={easingFunctions[selectedEasing]}
-                shadowMode={shadowMode}
-                cursorMode={cursorMode}
-                iconAnimationDelay={chartParams.iconAnimationDelay}
-                iconAnimationDuration={chartParams.iconAnimationDuration}
-                iconAnimationType={chartParams.iconAnimationType}
-                shadowEasing={easingFunctions[chartParams.shadowEasing]}
-                showSegmentLabels={chartParams.showSegmentLabels}
-                segmentLabelType={chartParams.segmentLabelType}
-                segmentLabelDistance={chartParams.segmentLabelDistance}
-                segmentLabels={chartParams.segmentLabels}
-                onSegmentClick={(segment, index) => {
-                  setSelectedSegment(segment);
-                }}
-              />
-            </div>
-            
-            <div style={{
-              padding: '20px', 
-              background: '#f8f9fa', 
-              color: '#333', 
-              borderRadius: '8px', 
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)', 
-              minWidth: '300px',
-              border: '1px solid #dee2e6'
-            }}>
-              <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Информация о сегменте</h3>
-              {selectedSegment ? (
-                <>
-                  <div style={{ marginBottom: '8px' }}>
-                    <b>Категория:</b> {selectedSegment.label}
-                  </div>
-                  <div style={{ marginBottom: '8px' }}>
-                    <b>Значение:</b> {selectedSegment.value}
-                  </div>
-                  <div style={{ marginBottom: '8px' }}>
-                    <b>Цвет:</b> <span style={{color: selectedSegment.color}}>{selectedSegment.color}</span>
-                  </div>
-                  {selectedSegment.iconUrl && (
-                    <img 
-                      src={selectedSegment.iconUrl} 
-                      alt="icon" 
-                      style={{width: 32, height: 32, marginTop: 8}} 
-                    />
-                  )}
-                </>
-              ) : (
-                <div style={{ color: '#666', fontStyle: 'italic' }}>
-                  Кликните на сегмент для просмотра информации
+          {/* Информация о сегменте - внизу */}
+          <div style={{
+            position: 'absolute',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '20px', 
+            background: '#f8f9fa', 
+            color: '#333', 
+            borderRadius: '8px', 
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)', 
+            minWidth: '300px',
+            border: '1px solid #dee2e6',
+            zIndex: 2
+          }}>
+            <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Информация о сегменте</h3>
+            {selectedSegment ? (
+              <>
+                <div style={{ marginBottom: '8px' }}>
+                  <b>Категория:</b> {selectedSegment.label}
                 </div>
-              )}
-            </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <b>Значение:</b> {selectedSegment.value}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <b>Цвет:</b> <span style={{color: selectedSegment.color}}>{selectedSegment.color}</span>
+                </div>
+                {selectedSegment.iconUrl && (
+                  <img 
+                    src={selectedSegment.iconUrl} 
+                    alt="icon" 
+                    style={{width: 32, height: 32, marginTop: 8}} 
+                  />
+                )}
+              </>
+            ) : (
+              <div style={{ color: '#666', fontStyle: 'italic' }}>
+                Кликните на сегмент для просмотра информации
+              </div>
+            )}
           </div>
         </div>
       </div>

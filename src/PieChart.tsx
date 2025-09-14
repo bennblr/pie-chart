@@ -22,7 +22,6 @@ export type PieChartSector = {
 export type PieChartProps = {
   data: PieChartSector[];
   size?: number;
-  strokeWidth?: number;
   ringWidth?: number; // Ширина кольца
   roundSize?: number; // Диаметр окружностей закруглений
   shadowBlur?: number; // Размытие тени
@@ -54,7 +53,6 @@ export type PieChartProps = {
 export const PieChart: React.FC<PieChartProps> = ({
   data,
   size = 500,
-  strokeWidth = 24,
   ringWidth = 50,
   roundSize = 25,
   shadowBlur = 8,
