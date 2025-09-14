@@ -97,24 +97,126 @@ export function drawSegmentShadow(
   endAngle: number,
   color: string,
   shadowBlur: number,
-  shadowOffset: number
+  shadowOffset: number,
+  progress: number = 1
 ) {
   if (!ctx) return;
   
-  // Создаем тень с размытием и смещением
   ctx.save();
+  
+  // Полностью сбрасываем все свойства контекста перед отрисовкой этой тени
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.globalAlpha = 1;
+  ctx.filter = 'none';
+  
+  // Устанавливаем свойства тени для этого конкретного элемента
   ctx.shadowColor = color;
   ctx.shadowBlur = shadowBlur;
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = shadowOffset;
-  ctx.globalAlpha = 0.5;
+  
+  // Создаем цвет с прозрачностью вместо использования globalAlpha
+  const alpha = 0.5 * progress;
+  const colorWithAlpha = color.startsWith('#') 
+    ? `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, ${alpha})`
+    : color;
   
   // Рисуем сегмент для тени
   ctx.beginPath();
   ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
   ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
   ctx.closePath();
-  ctx.fillStyle = color;
+  ctx.fillStyle = colorWithAlpha;
+  ctx.fill();
+  
+  ctx.restore();
+}
+
+// Функция для создания теней закруглений с хвостом (рисуется перед основным кругом)
+export function drawRoundShadow(
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  centerY: number,
+  innerRadius: number,
+  outerRadius: number,
+  roundSize: number,
+  angle: number,
+  shadowBlur: number,
+  shadowColor: string,
+  shadowOpacity: number,
+  shadowOffset: number,
+  segments: Array<{startAngle: number, endAngle: number, color: string}>,
+  currentSegmentIndex: number,
+  animationProgress: number = 1,
+  roundShadowOpacity: number = 0.2
+) {
+  if (!ctx) return;
+  
+  const segment = segments[currentSegmentIndex];
+  if (!segment) return;
+  
+  // Вычисляем позицию закругления
+  const roundX = centerX + Math.cos(angle) * (innerRadius + roundSize);
+  const roundY = centerY + Math.sin(angle) * (innerRadius + roundSize);
+  
+  // Сдвигаем круг с тенью по центральной линии сегмента (перпендикулярно к радиусу)
+  const tangentAngle = angle + Math.PI / 2; // Поворачиваем на 90 градусов
+  const shadowX = roundX + Math.cos(tangentAngle) * shadowOffset;
+  const shadowY = roundY + Math.sin(tangentAngle) * shadowOffset;
+  
+  ctx.save();
+  
+  // Полностью сбрасываем все свойства контекста перед отрисовкой этой тени
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.globalAlpha = 1;
+  ctx.filter = 'none';
+  
+  // Прозрачность меняется от 0 до roundShadowOpacity (от прозрачной к заданной)
+  const finalAlpha = animationProgress * roundShadowOpacity;
+  
+  // Создаем цвет с прозрачностью
+  const colorWithAlpha = shadowColor.startsWith('#') 
+    ? `rgba(${parseInt(shadowColor.slice(1, 3), 16)}, ${parseInt(shadowColor.slice(3, 5), 16)}, ${parseInt(shadowColor.slice(5, 7), 16)}, ${finalAlpha})`
+    : shadowColor;
+  
+  // Рисуем полкруга тени с увеличенным радиусом
+  const shadowRadius = roundSize + shadowOffset; // Радиус тени = основной радиус + смещение
+  
+  // Вычисляем углы для полкруга, повернутого на 90 градусов
+  const halfCircleStartAngle = angle; // Начинаем с центральной линии сегмента
+  const halfCircleEndAngle = angle + Math.PI; // Заканчиваем на 180 градусов от центральной линии
+  
+  // Если это первый сегмент и это тень в начале (startAngle), не рисуем тень вообще
+  if (currentSegmentIndex === 0 && Math.abs(angle - segment.startAngle) < 0.01) {
+    // Для первого сегмента в начале не рисуем тень
+    ctx.restore();
+    return;
+  }
+  
+  // Сначала применяем размытие и рисуем тень
+  ctx.filter = `blur(${shadowBlur}px)`;
+  
+  // Рисуем тень
+  ctx.beginPath();
+  ctx.arc(shadowX, shadowY, shadowRadius, halfCircleStartAngle, halfCircleEndAngle);
+  ctx.fillStyle = colorWithAlpha; // Используем цвет с прозрачностью
+  ctx.fill();
+  
+  // Сбрасываем filter
+  ctx.filter = 'none';
+  
+  // Теперь применяем обрезание - кольцо между innerRadius и outerRadius
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2); // Внешний круг
+  ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2, true); // Внутренний круг (обратное направление)
+  ctx.fillStyle = '#000000'; // Любой цвет, так как используется destination-in
   ctx.fill();
   
   ctx.restore();
@@ -252,8 +354,9 @@ export function drawSegmentLabel(
   segmentIndex: number,
   progress: number
 ) {
-  if (!ctx || progress < 1) return;
+  if (!ctx || progress <= 0) return;
   
+  // Рисуем иконки и текст без анимации - CSS будет управлять анимацией
   if (data[segmentIndex]?.iconUrl) {
     const img = new Image();
     img.onload = () => {
