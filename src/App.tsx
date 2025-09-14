@@ -121,7 +121,7 @@ function App() {
     shadowOffset: 8,
     roundShadowBlur: 4,
     roundShadowColor: '#000000',
-    roundShadowOpacity: 0.2,
+    roundShadowOpacity: 20,
     roundShadowOffset: 2,
     roundShadowMode: 'always' as 'always' | 'after-animation' | 'disabled',
     roundShadowAnimationDuration: 500,
@@ -340,10 +340,13 @@ function App() {
                   type="range"
                   value={chartParams.roundShadowOpacity}
                   onChange={(e) => handleInputChange('roundShadowOpacity', Number(e.target.value))}
+                  min="0"
+                  max="100"
+                  step="1"
                   style={{ width: '100%' }}
                 />
                 <span style={{ fontSize: '12px', color: '#666' }}>
-                  {Math.round(chartParams.roundShadowOpacity * 100)}%
+                  {chartParams.roundShadowOpacity}%
                 </span>
               </div>
               <div>
@@ -613,7 +616,7 @@ function App() {
                 shadowOffset={chartParams.shadowOffset}
                 roundShadowBlur={chartParams.roundShadowBlur}
                 roundShadowColor={chartParams.roundShadowColor}
-                roundShadowOpacity={chartParams.roundShadowOpacity}
+                roundShadowOpacity={chartParams.roundShadowOpacity / 100}
                 roundShadowOffset={chartParams.roundShadowOffset}
                 roundShadowMode={chartParams.roundShadowMode as 'always' | 'after-animation' | 'disabled'}
                 roundShadowAnimationDuration={chartParams.roundShadowAnimationDuration}
